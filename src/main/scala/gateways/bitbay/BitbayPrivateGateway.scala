@@ -20,18 +20,20 @@ class BitbayPrivateGateway @Inject() (ws: WSClient, config: Configuration)(impli
   def getMyTransactions(start: DateTime, end: DateTime, pair: CurrencyPair): Future[JsResult[MyBitbayTrades]] = {
 
     val time = DateTime.now().getMillis / 1000
-    println (time)
-    val params = ""//"""{"markets”:["BTC-PLN"]}"""
+    val params = """{"userAction":"Sell"}"""
     val algo = Algo.hmac(privateKey).sha512
     val data = s"$publicKey$time$params"
-    println(data)
     val hash: String = algo(data).hex
+    println(time)
+    println(data)
 
     ws.url(s"https://api.bitbay.net/rest/trading/history/transactions")
-//      .addQueryStringParameters("query" -> params)
-      .addHttpHeaders("API-Key" -> publicKey,
+      .addQueryStringParameters("query" -> params)
+      .addHttpHeaders(
+        "API-Key" -> publicKey,
         "API-Hash" -> hash,
-      "Request-Timestamp" -> s"$time")
+        "Request-Timestamp" -> s"$time"
+      )
       .withFollowRedirects(true)
       .get
       .map { response =>
